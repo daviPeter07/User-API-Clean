@@ -1,29 +1,29 @@
-version: "3.8"
-
 services:
   #aplicação
-  app:
-    image: php:8.2-apache
-    ports:
-      - "8000:80"
-    volumes:
-      - .:/var/www/html
-    enviroment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html/public
-    command: >
-      bash -c "a2enmod rewrite &&
-            sed -ri -e 's!/var/www/html!$${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf &&
-            sed -ri -e 's!/var/www/!$${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf &&
-            apache2-foreground"
+  # app:
+  #   image: php:8.2-apache
+  #   ports:
+  #     - "8000:80"
+  #   volumes:
+  #     - .:/var/www/html
+  #   environment:
+  #     - APACHE_DOCUMENT_ROOT=/var/www/html/public
+  #   command: >
+  #     bash -c "a2enmod rewrite &&
+  #           sed -ri -e 's!/var/www/html!$${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf &&
+  #           sed -ri -e 's!/var/www/!$${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf &&
+  #           apache2-foreground"
 
   #banco de dados
   db:
     image: mysql:8.0
     ports:
       - "3306:3306"
-    enviroment:
-      MYSQL_DATABASE: backend_challenge
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_PASSWORD: root
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-      db_data:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
