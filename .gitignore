@@ -1,0 +1,22 @@
+/vendor/
+
+.env
+.env.*
+!.env.example
+
+# Cache e Relatórios do PHPUnit (Testes)
+.phpunit.cache/
+.phpunit.result.cache
+/coverage/
+
+# Logs do sistema ou do PHP
+*.log
+/logs/
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Volumes do Docker (para não commitar os dados binários do seu banco local)
+/db_data/
