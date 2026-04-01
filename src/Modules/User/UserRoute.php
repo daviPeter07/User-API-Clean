@@ -6,6 +6,9 @@ use Bramus\Router\Router;
 
 final class UserRoute
 {
+  /** Padrão UUID (mesma ideia do validateId no validator) */
+  private const UUID_SEGMENT = '([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})';
+
   public static function register(Router $router): void
   {
     $repository = new UserRepository();
@@ -13,8 +16,32 @@ final class UserRoute
     $service = new UserService($repository);
     $controller = new UserController($service, $validator);
 
-    $router->post('/api/users', function () use ($controller) {
+    $base = '/api/users';
+
+    $router->get($base, function () use ($controller) {
+      $controller->index();
+    });
+
+    $router->post($base, function () use ($controller) {
       $controller->create();
+    });
+
+    $withId = $base . '/' . self::UUID_SEGMENT;
+
+    $router->get($withId, function (string $id) use ($controller) {
+      $controller->show($id);
+    });
+
+    $router->put($withId, function (string $id) use ($controller) {
+      $controller->update($id);
+    });
+
+    $router->patch($withId, function (string $id) use ($controller) {
+      $controller->update($id);
+    });
+
+    $router->delete($withId, function (string $id) use ($controller) {
+      $controller->destroy($id);
     });
   }
 }
