@@ -4,6 +4,7 @@ namespace App\Config;
 
 use Bramus\Router\Router;
 use App\Database\Connect;
+use App\Modules\User\UserRoute;
 
 $router = new Router();
 
@@ -20,5 +21,7 @@ $router->get('/test-db', function () {
     echo json_encode(['message' => 'DB Connected']);
   }
 });
+
+UserRoute::register($router);
 
 $router->run();
