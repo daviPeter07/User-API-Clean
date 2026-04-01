@@ -1,4 +1,4 @@
-# Task API — Usuários
+# API — Usuários
 
 API REST de usuários em **PHP 8+** sem framework full-stack: rotas com [Bramus Router](https://github.com/bramus/router), MySQL via PDO, validação com Rakit, UUID com Ramsey, migrações com Phinx e documentação **OpenAPI + Swagger UI**.
 
