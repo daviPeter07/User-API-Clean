@@ -5,12 +5,8 @@ namespace App\Http;
 use DomainException;
 use Throwable;
 
-/**
- * Respostas JSON de erro padronizadas, com códigos HTTP e textos em português.
- */
 final class JsonErrorHandler
 {
-  /** @var array<int, string> */
   private const MENSAGENS_PADRAO = [
     400 => 'Requisição inválida.',
     401 => 'Não autorizado.',
@@ -24,13 +20,6 @@ final class JsonErrorHandler
     503 => 'Serviço temporariamente indisponível.',
   ];
 
-  /**
-   * Monta o array da resposta (útil em testes unitários sem enviar headers).
-   *
-   * @param array<string, mixed> $detalhes erros por campo ou contexto extra
-   *
-   * @return array{erro: array{codigo_http: int, mensagem: string, detalhes: array<string, mixed>|null}}
-   */
   public function format(int $codigoHttp, ?string $mensagem = null, array $detalhes = []): array
   {
     $texto = $mensagem ?? (self::MENSAGENS_PADRAO[$codigoHttp] ?? 'Erro ao processar a requisição.');
@@ -44,19 +33,11 @@ final class JsonErrorHandler
     ];
   }
 
-  /**
-   * @param array<string, mixed> $detalhes
-   */
   public function send(int $codigoHttp, ?string $mensagem = null, array $detalhes = []): void
   {
     $this->emit($this->format($codigoHttp, $mensagem, $detalhes), $codigoHttp);
   }
 
-  /**
-   * Erros de validação (campos) — HTTP 400 com mensagem explícita em PT-BR.
-   *
-   * @param array<string, mixed> $errosPorCampo ex.: retorno do Rakit firstOfAll()
-   */
   public function sendValidationErrors(array $errosPorCampo): void
   {
     $this->send(
@@ -87,9 +68,6 @@ final class JsonErrorHandler
     return self::MENSAGENS_PADRAO[500];
   }
 
-  /**
-   * @param array{erro: array{codigo_http: int, mensagem: string, detalhes: mixed}} $payload
-   */
   private function emit(array $payload, int $codigoHttp): void
   {
     if (!headers_sent()) {

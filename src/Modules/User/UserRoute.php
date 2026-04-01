@@ -7,7 +7,6 @@ use Bramus\Router\Router;
 
 final class UserRoute
 {
-  /** Padrão UUID (mesma ideia do validateId no validator) */
   private const UUID_SEGMENT = '([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})';
 
   public static function register(Router $router): void

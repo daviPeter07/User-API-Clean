@@ -7,9 +7,6 @@ use App\Modules\User\DTO\CreateUserDTO;
 use App\Modules\User\DTO\UpdateUserDTO;
 use Exception;
 
-/**
- * Camada fina: valida entrada, chama o service, devolve HTTP.
- */
 class UserController
 {
   private UserService $service;

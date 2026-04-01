@@ -7,4 +7,4 @@ $dotenv->load();
 
 require_once __DIR__ . '/../src/Config/cors.php';
 
-require_once __DIR__ . "/../src/Config/routes.php";
+require_once __DIR__ . '/../src/Http/routes.php';

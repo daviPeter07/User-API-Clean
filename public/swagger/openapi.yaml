@@ -1,0 +1,349 @@
+openapi: 3.0.3
+info:
+  title: Task API — Usuários
+  description: |
+    API REST de usuários (PHP). Todas as respostas de erro seguem o formato `erro` com `codigo_http`, `mensagem` e `detalhes` (opcional).
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Raiz do servidor (ex. `php -S localhost:8000 -t public`)
+
+tags:
+  - name: Usuários
+    description: CRUD de usuários
+
+paths:
+  /api/users:
+    get:
+      tags: [Usuários]
+      summary: Listar usuários
+      description: Lista paginada. Padrão `page=1`, `per_page=10` (máx. 100).
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: Lista retornada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "400":
+          description: Parâmetros de paginação inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    post:
+      tags: [Usuários]
+      summary: Criar usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+            examples:
+              exemplo:
+                value:
+                  name: "Maria Silva"
+                  email: "maria@example.com"
+                  password: "senha1234"
+      responses:
+        "201":
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCreatedResponse"
+        "400":
+          description: Validação falhou
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: E-mail já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/users/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+
+    get:
+      tags: [Usuários]
+      summary: Buscar usuário por ID
+      responses:
+        "200":
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "400":
+          description: ID com formato inválido (esperado UUID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    put:
+      tags: [Usuários]
+      summary: Atualizar usuário (substituição parcial dos campos enviados)
+      description: |
+        Envie ao menos um dos campos `name`, `email` ou `password`.
+        Regras quando presentes: `name` mín. 3 caracteres; `email` válido; `password` mín. 8 caracteres.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+            examples:
+              soNome:
+                value:
+                  name: "Maria Santos"
+      responses:
+        "200":
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "400":
+          description: ID inválido ou corpo inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: E-mail já usado por outro usuário
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    patch:
+      tags: [Usuários]
+      summary: Atualizar usuário (mesmo comportamento do PUT)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublic"
+        "400":
+          description: ID inválido ou corpo inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: E-mail já usado por outro usuário
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    delete:
+      tags: [Usuários]
+      summary: Remover usuário
+      responses:
+        "204":
+          description: Removido com sucesso (sem corpo)
+        "400":
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+components:
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: UUID do usuário
+      schema:
+        type: string
+        format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+
+  schemas:
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          example: "2026-04-01 12:00:00"
+        updated_at:
+          type: string
+          example: "2026-04-01 12:00:00"
+
+    UserCreate:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 3
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          format: password
+
+    UserUpdate:
+      type: object
+      description: Pelo menos uma propriedade deve ser enviada.
+      properties:
+        name:
+          type: string
+          minLength: 3
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          format: password
+
+    UserListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserPublic"
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+            per_page:
+              type: integer
+            total:
+              type: integer
+            total_pages:
+              type: integer
+
+    UserCreatedResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Usuário criado com sucesso!"
+        user:
+          $ref: "#/components/schemas/UserPublic"
+
+    ApiError:
+      type: object
+      properties:
+        erro:
+          type: object
+          properties:
+            codigo_http:
+              type: integer
+              example: 400
+            mensagem:
+              type: string
+              example: "Os dados enviados não passaram na validação."
+            detalhes:
+              nullable: true
+              type: object
+              additionalProperties: true
+              description: Mapa campo → mensagem (validação) ou contexto extra.

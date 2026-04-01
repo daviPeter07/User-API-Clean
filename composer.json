@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "dev": "php -S localhost:8000 -t public",
+    "dev": "php -S localhost:8000 -t public public/php-built-in-server.php",
     "test": "phpunit"
   },
   "require": {
