@@ -2,6 +2,7 @@
 
 namespace App\Modules\User;
 
+use App\Http\JsonErrorHandler;
 use Bramus\Router\Router;
 
 final class UserRoute
@@ -14,7 +15,8 @@ final class UserRoute
     $repository = new UserRepository();
     $validator = new UserValidator();
     $service = new UserService($repository);
-    $controller = new UserController($service, $validator);
+    $errors = new JsonErrorHandler();
+    $controller = new UserController($service, $validator, $errors);
 
     $base = '/api/users';
 

@@ -7,9 +7,14 @@
       "App\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "scripts": {
     "dev": "php -S localhost:8000 -t public",
-    "test": "phpunit --bootstrap vendor/autoload.php tests"
+    "test": "phpunit"
   },
   "require": {
     "bramus/router": "~1.6",

@@ -2,6 +2,7 @@
 
 namespace App\Database;
 
+use App\Http\JsonErrorHandler;
 use PDO;
 use PDOException;
 
@@ -26,9 +27,27 @@ class Connect
           PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
       } catch (PDOException $e) {
-        die(json_encode(['error' => 'Erro na conexão com o banco: ' . $e->getMessage()]));
+        self::abortOnConnectionFailure($e);
       }
     }
+
     return self::$instance;
+  }
+
+  private static function abortOnConnectionFailure(PDOException $e): void
+  {
+    $handler = new JsonErrorHandler();
+    $mensagem = "Não foi possível conectar ao banco de dados.";
+
+    $appDebug = isset($_ENV['APP_DEBUG']) ? (string) $_ENV['APP_DEBUG'] : '';
+    $debugLigado = ($appDebug === 'true' || $appDebug === '1');
+
+    if ($debugLigado) {
+      $handler->send(503, $mensagem, ['motivo' => $e->getMessage()]);
+    } else {
+      $handler->send(503, $mensagem);
+    }
+
+    exit(1);
   }
 }

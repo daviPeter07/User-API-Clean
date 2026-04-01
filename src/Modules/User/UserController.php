@@ -2,22 +2,28 @@
 
 namespace App\Modules\User;
 
+use App\Http\JsonErrorHandler;
 use App\Modules\User\DTO\CreateUserDTO;
 use App\Modules\User\DTO\UpdateUserDTO;
 use Exception;
 
 /**
- * Camada fina: valida entrada, chama o service, devolve HTTP — equivalente aos seus handle* no Express.
+ * Camada fina: valida entrada, chama o service, devolve HTTP.
  */
 class UserController
 {
   private UserService $service;
   private UserValidator $validator;
+  private JsonErrorHandler $errors;
 
-  public function __construct(UserService $service, UserValidator $validator)
-  {
+  public function __construct(
+    UserService $service,
+    UserValidator $validator,
+    JsonErrorHandler $errors,
+  ) {
     $this->service = $service;
     $this->validator = $validator;
+    $this->errors = $errors;
   }
 
   public function index(): void
@@ -25,7 +31,7 @@ class UserController
     try {
       $validation = $this->validator->validateListQuery($_GET);
       if (!$validation['success']) {
-        $this->jsonResponse($validation['errors'], 400);
+        $this->errors->sendValidationErrors($validation['errors']);
 
         return;
       }
@@ -34,7 +40,7 @@ class UserController
       $result = $this->service->listUsers((int) $data['page'], (int) $data['per_page']);
       $this->jsonResponse($result, 200);
     } catch (Exception $e) {
-      $this->jsonResponse(['error' => 'Erro interno: ' . $e->getMessage()], 500);
+      $this->errors->fromThrowable($e);
     }
   }
 
@@ -43,21 +49,21 @@ class UserController
     try {
       $validation = $this->validator->validateId($id);
       if (!$validation['success']) {
-        $this->jsonResponse($validation['errors'], 400);
+        $this->errors->sendValidationErrors($validation['errors']);
 
         return;
       }
 
       $user = $this->service->getUserById($validation['data']['id']);
       if ($user === null) {
-        $this->jsonResponse(['error' => 'Usuário não encontrado.'], 404);
+        $this->errors->send(404, 'Usuário não encontrado.');
 
         return;
       }
 
       $this->jsonResponse($user, 200);
     } catch (Exception $e) {
-      $this->jsonResponse(['error' => 'Erro interno: ' . $e->getMessage()], 500);
+      $this->errors->fromThrowable($e);
     }
   }
 
@@ -66,7 +72,7 @@ class UserController
     try {
       $validation = $this->validator->validateCreate($this->readJsonBody());
       if (!$validation['success']) {
-        $this->jsonResponse($validation['errors'], 400);
+        $this->errors->sendValidationErrors($validation['errors']);
 
         return;
       }
@@ -80,9 +86,9 @@ class UserController
         'user'    => $user,
       ], 201);
     } catch (\DomainException $e) {
-      $this->jsonResponse(['error' => $e->getMessage()], 409);
+      $this->errors->fromThrowable($e);
     } catch (Exception $e) {
-      $this->jsonResponse(['error' => 'Erro interno: ' . $e->getMessage()], 500);
+      $this->errors->fromThrowable($e);
     }
   }
 
@@ -91,14 +97,14 @@ class UserController
     try {
       $idValidation = $this->validator->validateId($id);
       if (!$idValidation['success']) {
-        $this->jsonResponse($idValidation['errors'], 400);
+        $this->errors->sendValidationErrors($idValidation['errors']);
 
         return;
       }
 
       $bodyValidation = $this->validator->validateUpdate($this->readJsonBody());
       if (!$bodyValidation['success']) {
-        $this->jsonResponse($bodyValidation['errors'], 400);
+        $this->errors->sendValidationErrors($bodyValidation['errors']);
 
         return;
       }
@@ -112,16 +118,16 @@ class UserController
 
       $user = $this->service->updateUser($idValidation['data']['id'], $dto);
       if ($user === null) {
-        $this->jsonResponse(['error' => 'Usuário não encontrado.'], 404);
+        $this->errors->send(404, 'Usuário não encontrado.');
 
         return;
       }
 
       $this->jsonResponse($user, 200);
     } catch (\DomainException $e) {
-      $this->jsonResponse(['error' => $e->getMessage()], 409);
+      $this->errors->fromThrowable($e);
     } catch (Exception $e) {
-      $this->jsonResponse(['error' => 'Erro interno: ' . $e->getMessage()], 500);
+      $this->errors->fromThrowable($e);
     }
   }
 
@@ -130,20 +136,20 @@ class UserController
     try {
       $validation = $this->validator->validateId($id);
       if (!$validation['success']) {
-        $this->jsonResponse($validation['errors'], 400);
+        $this->errors->sendValidationErrors($validation['errors']);
 
         return;
       }
 
       if (!$this->service->deleteUser($validation['data']['id'])) {
-        $this->jsonResponse(['error' => 'Usuário não encontrado.'], 404);
+        $this->errors->send(404, 'Usuário não encontrado.');
 
         return;
       }
 
       $this->responseNoContent();
     } catch (Exception $e) {
-      $this->jsonResponse(['error' => 'Erro interno: ' . $e->getMessage()], 500);
+      $this->errors->fromThrowable($e);
     }
   }
 
@@ -157,7 +163,9 @@ class UserController
 
   private function jsonResponse(array $data, int $statusCode = 200): void
   {
-    header('Content-Type: application/json; charset=utf-8');
+    if (!headers_sent()) {
+      header('Content-Type: application/json; charset=utf-8');
+    }
     http_response_code($statusCode);
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
   }
